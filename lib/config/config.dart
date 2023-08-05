@@ -7,4 +7,6 @@ class Config {
   static const String getSectorApi = "$appUrl/location/sector";
   static const String loginApi = "$appUrl/user/auth/login/user";
   static const String victimApi = "$appUrl/victim";
+  static const String categoryApi = "$appUrl/category";
+  static const String registerVictimApi = "$appUrl/victim/creation";
 }

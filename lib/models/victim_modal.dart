@@ -25,6 +25,7 @@ class Victim {
     required this.category,
   });
 
+  // Define a constructor to parse JSON
   factory Victim.fromJson(Map<String, dynamic> json) {
     return Victim(
       id: json['id'],
@@ -39,22 +40,6 @@ class Victim {
       updatedAt: DateTime.parse(json['updated_at']),
       category: Category.fromJson(json['category']),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'lastName': lastName,
-      'firstName': firstName,
-      'dob': dob.toIso8601String(),
-      'primaryPhone': primaryPhone,
-      'status': status,
-      'created_by': createdBy,
-      'updated_by': updatedBy,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
-      'category': category.toJson(),
-    };
   }
 }
 
@@ -77,27 +62,17 @@ class Category {
     required this.updatedAt,
   });
 
+  // Define a constructor to parse JSON
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
       id: json['id'],
-      categoryName: json['cateogryName'], // Correct the typo in the JSON key
+      categoryName: json[
+          'cateogryName'], // Note the typo in the field name 'cateogryName'
       status: json['status'],
       createdBy: json['created_by'],
       updatedBy: json['updated_by'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'cateogryName': categoryName, // Correct the typo in the JSON key
-      'status': status,
-      'created_by': createdBy,
-      'updated_by': updatedBy,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
-    };
   }
 }

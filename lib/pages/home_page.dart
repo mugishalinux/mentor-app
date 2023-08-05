@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:modernlogintute/config/config.dart';
+import 'package:modernlogintute/models/category_model.dart';
 import '../models/victim_modal.dart';
 import 'navBar.dart';
 
@@ -21,6 +22,10 @@ class _HomePageState extends State<HomePage> {
   String? _greeting = '';
   bool _isLoading = true;
   String _names = "";
+  List<Victim> _allVictims = []; // State variable to hold the list of victims
+  List<Categories> _allCategories = [];
+  Victim?
+      _selectedVictimForEdit; // Store the victim to be edited in the modal form
 
   Future<void> _checkUserInfo() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -33,27 +38,63 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchAndPrintVictims() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     try {
       // Fetch data from the API
-      final response = await http.get(Uri.parse(Config.victimApi));
+      final response = await http.get(
+        Uri.parse(Config.victimApi),
+        headers: {
+          'Authorization': 'Bearer ${prefs.getString('token')}',
+        },
+      );
       if (response.statusCode == 200) {
+        print("Victims Successful fetched");
         // Successful response, convert JSON to list of Victim objects
         List<dynamic> jsonList = jsonDecode(response.body);
-        List<Victim> victims =
-            jsonList.map((json) => Victim.fromJson(json)).toList();
-
-        // Print each Victim object
-        for (var victim in victims) {
-          print("Victim ID: ${victim.id}");
-          print("Last Name: ${victim.lastName}");
-          print("First Name: ${victim.firstName}");
-          // ... print other properties as needed ...
-          print("Category Name: ${victim.category.categoryName}");
-          print("==========================");
+        List<Victim> victims = [];
+        for (var json in jsonList) {
+          victims.add(Victim.fromJson(json));
         }
+        setState(() {
+          _allVictims =
+              victims; // Set the state variable with the list of victims
+        });
       } else {
         // Handle error response
         print("Failed to fetch victims. Status code: ${response.statusCode}");
+        print(response.body);
+      }
+    } catch (e) {
+      // Handle any exceptions that may occur during the API call
+      print("Error occurred: $e");
+    }
+  }
+
+  Future<void> _fetchAndPrintCategories() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    try {
+      // Fetch data from the API
+      final response = await http.get(
+        Uri.parse(Config.categoryApi),
+        headers: {
+          'Authorization': 'Bearer ${prefs.getString('token')}',
+        },
+      );
+      if (response.statusCode == 200) {
+        print("Categories Successful fetched");
+        // Successful response, convert JSON to list of Victim objects
+        List<dynamic> jsonList = jsonDecode(response.body);
+        List<Categories> categories = [];
+        for (var json in jsonList) {
+          categories.add(Categories.fromJson(json));
+        }
+        setState(() {
+          _allCategories =
+              categories; // Set the state variable with the list of categories
+        });
+      } else {
+        // Handle error response
+        print("Failed to fetch category. Status code: ${response.statusCode}");
         print(response.body);
       }
     } catch (e) {
@@ -67,6 +108,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _checkUserInfo();
     _fetchAndPrintVictims();
+    _fetchAndPrintCategories();
   }
 
   @override
@@ -79,14 +121,88 @@ class _HomePageState extends State<HomePage> {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: const [
-            SizedBox(
-              height: 20,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              for (var victim in _allVictims)
+                VictimCard(
+                  victim: victim,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Stateless widget for the Material UI card to display each victim
+class VictimCard extends StatelessWidget {
+  final Victim victim;
+
+  const VictimCard({required this.victim});
+
+  void _showDetailsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Victim Details"),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("ID: ${victim.id}"),
+              const Divider(),
+              Text("Last Name: ${victim.lastName}"),
+              const Divider(),
+              Text("First Name: ${victim.firstName}"),
+              const Divider(),
+              Text("DOB: ${victim.dob}"),
+              const Divider(),
+              Text("Primary Phone: ${victim.primaryPhone}"),
+              const Divider(),
+              // ... Add other properties as needed ...
+              Text("Category Name: ${victim.category.categoryName}"),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(
+                    context); // Close the dialog when 'Close' is pressed
+              },
+              child: Text('Close'),
             ),
-            Text("Home"),
-            SizedBox(
-              height: 20,
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: ListTile(
+        title: Text("${victim.lastName} ${victim.firstName}"),
+        subtitle: Text("DOB: ${victim.dob}"),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.remove_red_eye),
+              onPressed: () {
+                _showDetailsDialog(
+                    context); // Show the details dialog on button tap
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                // Handle edit button tap
+                // You can show a dialog or navigate to an edit page here
+              },
             ),
           ],
         ),
