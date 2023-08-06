@@ -1,52 +1,51 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:modernlogintute/models/category_model.dart';
+import 'package:intl/intl.dart';
+import 'package:modernlogintute/pages/update_form_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:modernlogintute/config/config.dart';
 import '../components/my_textfield.dart';
-import '../config/config.dart';
 import 'home_page.dart';
-import 'login_page.dart';
-import 'navBar.dart';
 
-class VictimPage extends StatefulWidget {
-  const VictimPage({Key? key}) : super(key: key);
+class UpdateVictim extends StatefulWidget {
+  final int id;
+  final String lastName;
+  final String firstName;
+  final DateTime dob;
+  final String primaryPhone;
+  final int categoryId;
+  final String categoryName;
+  const UpdateVictim(
+      {Key? key,
+      required this.id,
+      required this.lastName,
+      required this.firstName,
+      required this.dob,
+      required this.primaryPhone,
+      required this.categoryId,
+      required this.categoryName})
+      : super(key: key);
 
   @override
-  State<VictimPage> createState() => _VictimPageState();
+  State<UpdateVictim> createState() => _UpdateVictimState();
 }
 
-class _VictimPageState extends State<VictimPage> {
+class _UpdateVictimState extends State<UpdateVictim> {
   int? _id;
   String? _jwtToken;
   String? _greeting = '';
   bool _isLoading = true;
   String _names = "";
 
-  Future<void> _checkUserInfo() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
-    setState(() {
-      _jwtToken = prefs.getString('token');
-      _id = prefs.getInt('id');
-      _names = prefs.getString('names')!;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _checkUserInfo();
-    _fetchCategories();
-  }
-
-  final firstNameController = TextEditingController();
-  final lastNameController = TextEditingController();
-  final dobController = TextEditingController();
-  final phoneNumberController = TextEditingController();
-  final passwordController = TextEditingController();
-
+  String firstNameController = "";
+  String lastNameController = '';
+  DateTime dobController = DateTime.now();
+  String phoneNumberController = '';
+  String passwordController = '';
+  int categoryIDent = 0;
   String? selectedCategory;
   String? selectedProvince;
   String? selectedDistrict;
@@ -56,7 +55,6 @@ class _VictimPageState extends State<VictimPage> {
   int? selectedDistrictId;
   int? selectedSectorId;
   int? selectedCategoryId;
-
   bool isLoading = false;
   String _errorMessage = '';
   String _errorAgeMessage = '';
@@ -90,61 +88,23 @@ class _VictimPageState extends State<VictimPage> {
     }
   }
 
-  Future<void> fetchProvinces() async {
-    final response = await http.get(Uri.parse(Config.getProvinceApi));
-
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      setState(() {
-        provinces = data.cast<Map<String, dynamic>>();
-      });
-    } else {
-      // Handle API error
-      print('Failed to fetch provinces');
-    }
-  }
-
-  Future<void> fetchDistricts(int provinceId) async {
-    final response =
-        await http.get(Uri.parse('${Config.getDistrictApi}/$provinceId'));
-
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      setState(() {
-        districts = data.cast<Map<String, dynamic>>();
-      });
-    } else {
-      // Handle API error
-      print('Failed to fetch districts');
-    }
-  }
-
-  void _registerUser() async {
+  void _UpdateVictim() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
-    // Perform validation checks
+
+    setState(() {
+      isLoading = true;
+      _errorMessage = '';
+    });
 
     // Convert the provided date of birth to a DateTime object
-    DateTime dob = DateTime.parse(dobController.text);
+    DateTime dob = DateTime.parse(dobController.toString());
     // Get the current year
     DateTime now = DateTime.now();
     int currentYear = now.year;
 
 // Calculate the age
     int age = currentYear - dob.year;
-    if (firstNameController.text.isEmpty ||
-        lastNameController.text.isEmpty ||
-        dobController.text.isEmpty ||
-        phoneNumberController.text.isEmpty ||
-        selectedCategoryId == null ||
-        selectedCategoryId == 0) {
-      setState(() {
-        _errorMessage = 'All fields are required.';
-        isLoading = false;
-      });
-      return;
-    }
-
     if (age >= 21) {
       print("Victim age should be below 21 years old.");
       setState(() {
@@ -159,32 +119,31 @@ class _VictimPageState extends State<VictimPage> {
       return;
     }
 
-    setState(() {
-      isLoading = true;
-      _errorMessage = '';
-    });
-    final registrationUrl = Config.registerVictimApi;
     final registrationBody = {
-      "firstName": firstNameController.text,
-      "lastName": lastNameController.text,
-      "dob": dobController.text,
-      "phoneNumber": phoneNumberController.text,
+      "firstName": firstNameController,
+      "lastName": lastNameController,
+      "dob": dobController.toString(),
+      "phoneNumber": phoneNumberController,
       "user": prefs.getInt('id'), // Replace with the actual access level value
       "category": selectedCategoryId ?? 0,
     };
+    if (selectedCategoryId == 0 || selectedCategoryId == null) {
+      selectedCategoryId = categoryIDent;
+    }
 
-    final response = await http.post(
-      Uri.parse(registrationUrl),
+    final response = await http.put(
+      Uri.parse('${Config.updateVictimApi}${widget.id}'),
       body: json.encode(registrationBody),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ${prefs.getString('token')}',
       },
     );
+
     setState(() {
       isLoading = false;
     });
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       // Registration successful, handle the response here if needed
       if (kDebugMode) {
         print('Registration successful');
@@ -193,9 +152,8 @@ class _VictimPageState extends State<VictimPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text("Registration Successfully Done"),
-            content:
-                const Text("You have successfully registered new victim  "),
+            title: const Text("Update Successfully Done"),
+            content: const Text("You have updated victim  "),
             actions: [
               TextButton(
                 onPressed: () {
@@ -224,7 +182,7 @@ class _VictimPageState extends State<VictimPage> {
       }
       try {
         final errorData = jsonDecode(response.body);
-        print(errorData['message']);
+        print("errors:  $errorData['message']");
         setState(() {
           _errorMessage = "Registration Failed ";
         });
@@ -245,13 +203,23 @@ class _VictimPageState extends State<VictimPage> {
   }
 
   @override
+  void initState() {
+    firstNameController = widget.firstName;
+    lastNameController = widget.lastName;
+    dobController = widget.dob;
+    phoneNumberController = widget.primaryPhone;
+    categoryIDent = widget.categoryId;
+    super.initState();
+    _fetchCategories();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[300],
-      drawer: NavBar(names: _names),
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: const Text("Register Victim"),
+        title: const Text("Update Victim Info"),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -263,18 +231,30 @@ class _VictimPageState extends State<VictimPage> {
                 const SizedBox(height: 50),
 
                 // firstname textfield
-                MyTextField(
-                  controller: firstNameController,
+                UpdateFormWidget(
                   hintText: 'First Name',
                   obscureText: false,
+                  initialValue: widget.firstName,
+                  onChanged: (value) {
+                    setState(() {
+                      firstNameController = value;
+                    });
+                  },
+                  validator: (String? value) {},
                 ),
                 const SizedBox(height: 10),
 
                 // lastname textfield
-                MyTextField(
-                  controller: lastNameController,
+                UpdateFormWidget(
                   hintText: 'Last Name',
                   obscureText: false,
+                  initialValue: widget.lastName,
+                  onChanged: (value) {
+                    setState(() {
+                      lastNameController = value;
+                    });
+                  },
+                  validator: (String? value) {},
                 ),
                 const SizedBox(height: 10),
 
@@ -283,32 +263,47 @@ class _VictimPageState extends State<VictimPage> {
                   onTap: () async {
                     DateTime? date = await showDatePicker(
                       context: context,
-                      initialDate: DateTime.now(),
+                      initialDate: dobController ?? widget.dob,
                       firstDate: DateTime(1900),
                       lastDate: DateTime.now(),
                     );
 
                     if (date != null && date != DateTime.now()) {
                       setState(() {
-                        dobController.text = date.toString().split(' ')[0];
+                        dobController = date;
                       });
                     }
                   },
                   child: AbsorbPointer(
-                    child: MyTextField(
-                      controller: dobController,
+                    child: UpdateFormWidget(
                       hintText: 'Date of Birth',
                       obscureText: false,
+                      validator: (value) {},
+                      onChanged: (value) {
+                        setState(() {
+                          dobController = DateTime.parse(value);
+                        });
+                      },
+                      initialValue: dobController != null
+                          ? dobController.toString().split(' ')[0]
+                          : widget.dob.toString().split(' ')[0],
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 10),
 
                 // phoneNumber textfield
-                MyTextField(
-                  controller: phoneNumberController,
+                UpdateFormWidget(
+                  initialValue: widget.primaryPhone,
+                  onChanged: (value) {
+                    setState(() {
+                      phoneNumberController = value;
+                    });
+                  },
                   hintText: 'Phone Number',
                   obscureText: false,
+                  validator: (String? value) {},
                 ),
                 const SizedBox(height: 10),
 
@@ -318,7 +313,8 @@ class _VictimPageState extends State<VictimPage> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
                   child: DropdownButton<String>(
-                    value: selectedCategory,
+                    value: widget.categoryName,
+
                     hint: const Text('Select Category'),
                     isExpanded: true, // Set width to 100%
                     dropdownColor:
@@ -331,7 +327,6 @@ class _VictimPageState extends State<VictimPage> {
                       if (selectedCategory != null) {
                         int categoryId = categories.firstWhere((category) =>
                             category['cateogryName'] == value)['id'];
-                        fetchDistricts(categoryId);
                         selectedCategoryId = categoryId;
                       }
                     },
@@ -369,7 +364,7 @@ class _VictimPageState extends State<VictimPage> {
                           ],
                         )
                       : const Text(
-                          'Register',
+                          'Update',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -379,7 +374,7 @@ class _VictimPageState extends State<VictimPage> {
                   onPressed: () {
                     if (!isLoading) {
                       setState(() => isLoading = true);
-                      _registerUser();
+                      _UpdateVictim();
                     }
                   },
                 ),
@@ -399,7 +394,6 @@ class _VictimPageState extends State<VictimPage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
                 const SizedBox(height: 50),
               ],
             ),

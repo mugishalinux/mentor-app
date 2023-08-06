@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:modernlogintute/pages/update_victim_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:modernlogintute/config/config.dart';
@@ -124,12 +125,25 @@ class _HomePageState extends State<HomePage> {
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
-            children: [
-              for (var victim in _allVictims)
-                VictimCard(
-                  victim: victim,
-                ),
-            ],
+            children: _allVictims.isEmpty
+                ? [
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Center(
+                      child: Text(
+                        'No victim yet registered',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ),
+                  ]
+                : [
+                    for (var victim in _allVictims)
+                      VictimCard(
+                        victim: victim,
+                      ),
+                  ],
           ),
         ),
       ),
@@ -148,7 +162,7 @@ class VictimCard extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Victim Details"),
+          title: const Text("Victim Details"),
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -200,8 +214,26 @@ class VictimCard extends StatelessWidget {
             IconButton(
               icon: const Icon(Icons.edit),
               onPressed: () {
-                // Handle edit button tap
-                // You can show a dialog or navigate to an edit page here
+                int id = victim.id;
+                String lastName = victim.lastName;
+                String firstName = victim.firstName;
+                DateTime dob = victim.dob;
+                String primaryPhone = victim.primaryPhone;
+                int categoryId = victim.category.id;
+                String categoryName = victim.category.categoryName;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => UpdateVictim(
+                            id: id,
+                            lastName: lastName,
+                            firstName: firstName,
+                            dob: dob,
+                            primaryPhone: primaryPhone,
+                            categoryId: categoryId,
+                            categoryName: categoryName,
+                          )),
+                );
               },
             ),
           ],

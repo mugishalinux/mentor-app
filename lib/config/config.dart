@@ -1,5 +1,5 @@
 class Config {
-  static const String appUrl = "http://192.168.8.100:8000";
+  static const String appUrl = "http://192.168.1.64:8000";
   static const String loginApiUser = "$appUrl/user/auth/login/user";
   static const String registerApiUser = "$appUrl/user/createMentor";
   static const String getProvinceApi = "$appUrl/location/province";
@@ -9,4 +9,5 @@ class Config {
   static const String victimApi = "$appUrl/victim";
   static const String categoryApi = "$appUrl/category";
   static const String registerVictimApi = "$appUrl/victim/creation";
+  static const String updateVictimApi = "$appUrl/victim/";
 }
