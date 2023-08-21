@@ -15,7 +15,7 @@ class UpdateVictim extends StatefulWidget {
   final String lastName;
   final String firstName;
   final DateTime dob;
-  final String primaryPhone;
+  final String email;
   final int categoryId;
   final String categoryName;
   const UpdateVictim(
@@ -24,7 +24,7 @@ class UpdateVictim extends StatefulWidget {
       required this.lastName,
       required this.firstName,
       required this.dob,
-      required this.primaryPhone,
+      required this.email,
       required this.categoryId,
       required this.categoryName})
       : super(key: key);
@@ -43,7 +43,7 @@ class _UpdateVictimState extends State<UpdateVictim> {
   String firstNameController = "";
   String lastNameController = '';
   DateTime dobController = DateTime.now();
-  String phoneNumberController = '';
+  String emailController = '';
   String passwordController = '';
   int categoryIDent = 0;
   String? selectedCategory;
@@ -123,7 +123,7 @@ class _UpdateVictimState extends State<UpdateVictim> {
       "firstName": firstNameController,
       "lastName": lastNameController,
       "dob": dobController.toString(),
-      "phoneNumber": phoneNumberController,
+      "email": emailController,
       "user": prefs.getInt('id'), // Replace with the actual access level value
       "category": selectedCategoryId ?? 0,
     };
@@ -207,7 +207,7 @@ class _UpdateVictimState extends State<UpdateVictim> {
     firstNameController = widget.firstName;
     lastNameController = widget.lastName;
     dobController = widget.dob;
-    phoneNumberController = widget.primaryPhone;
+    emailController = widget.email;
     categoryIDent = widget.categoryId;
     super.initState();
     _fetchCategories();
@@ -295,13 +295,13 @@ class _UpdateVictimState extends State<UpdateVictim> {
 
                 // phoneNumber textfield
                 UpdateFormWidget(
-                  initialValue: widget.primaryPhone,
+                  initialValue: widget.email,
                   onChanged: (value) {
                     setState(() {
-                      phoneNumberController = value;
+                      emailController = value;
                     });
                   },
-                  hintText: 'Phone Number',
+                    hintText: 'Enter Email',
                   obscureText: false,
                   validator: (String? value) {},
                 ),

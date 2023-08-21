@@ -44,7 +44,7 @@ class _VictimPageState extends State<VictimPage> {
   final firstNameController = TextEditingController();
   final lastNameController = TextEditingController();
   final dobController = TextEditingController();
-  final phoneNumberController = TextEditingController();
+  final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
   String? selectedCategory;
@@ -135,7 +135,7 @@ class _VictimPageState extends State<VictimPage> {
     if (firstNameController.text.isEmpty ||
         lastNameController.text.isEmpty ||
         dobController.text.isEmpty ||
-        phoneNumberController.text.isEmpty ||
+        emailController.text.isEmpty ||
         selectedCategoryId == null ||
         selectedCategoryId == 0) {
       setState(() {
@@ -168,7 +168,7 @@ class _VictimPageState extends State<VictimPage> {
       "firstName": firstNameController.text,
       "lastName": lastNameController.text,
       "dob": dobController.text,
-      "phoneNumber": phoneNumberController.text,
+      "email": emailController.text,
       "user": prefs.getInt('id'), // Replace with the actual access level value
       "category": selectedCategoryId ?? 0,
     };
@@ -306,8 +306,8 @@ class _VictimPageState extends State<VictimPage> {
 
                 // phoneNumber textfield
                 MyTextField(
-                  controller: phoneNumberController,
-                  hintText: 'Phone Number',
+                  controller: emailController,
+                  hintText: 'Enter Email',
                   obscureText: false,
                 ),
                 const SizedBox(height: 10),

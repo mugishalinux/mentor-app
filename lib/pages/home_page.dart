@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:modernlogintute/pages/update_victim_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -161,6 +162,7 @@ class VictimCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) {
+        String formattedDOB = DateFormat('dd MMMM yyyy').format(victim.dob);
         return AlertDialog(
           title: const Text("Victim Details"),
           content: Column(
@@ -173,9 +175,9 @@ class VictimCard extends StatelessWidget {
               const Divider(),
               Text("First Name: ${victim.firstName}"),
               const Divider(),
-              Text("DOB: ${victim.dob}"),
+              Text("DOB: ${formattedDOB}"),
               const Divider(),
-              Text("Primary Phone: ${victim.primaryPhone}"),
+              Text("Email: ${victim.email}"),
               const Divider(),
               // ... Add other properties as needed ...
               Text("Category Name: ${victim.category.categoryName}"),
@@ -197,10 +199,11 @@ class VictimCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String formattedDOB = DateFormat('dd MMMM yyyy').format(victim.dob);
     return Card(
       child: ListTile(
         title: Text("${victim.lastName} ${victim.firstName}"),
-        subtitle: Text("DOB: ${victim.dob}"),
+        subtitle: Text("DOB: ${formattedDOB}"),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -218,7 +221,7 @@ class VictimCard extends StatelessWidget {
                 String lastName = victim.lastName;
                 String firstName = victim.firstName;
                 DateTime dob = victim.dob;
-                String primaryPhone = victim.primaryPhone;
+                String email = victim.email;
                 int categoryId = victim.category.id;
                 String categoryName = victim.category.categoryName;
                 Navigator.push(
@@ -229,7 +232,7 @@ class VictimCard extends StatelessWidget {
                             lastName: lastName,
                             firstName: firstName,
                             dob: dob,
-                            primaryPhone: primaryPhone,
+                            email: email,
                             categoryId: categoryId,
                             categoryName: categoryName,
                           )),

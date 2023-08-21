@@ -3,7 +3,7 @@ class Victim {
   String lastName;
   String firstName;
   DateTime dob;
-  String primaryPhone;
+  String email;
   int status;
   int createdBy;
   int updatedBy;
@@ -16,7 +16,7 @@ class Victim {
     required this.lastName,
     required this.firstName,
     required this.dob,
-    required this.primaryPhone,
+    required this.email,
     required this.status,
     required this.createdBy,
     required this.updatedBy,
@@ -32,7 +32,7 @@ class Victim {
       lastName: json['lastName'],
       firstName: json['firstName'],
       dob: DateTime.parse(json['dob']),
-      primaryPhone: json['primaryPhone'],
+      email: json['email'],
       status: json['status'],
       createdBy: json['created_by'],
       updatedBy: json['updated_by'],
