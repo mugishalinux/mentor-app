@@ -18,6 +18,8 @@ class UpdateVictim extends StatefulWidget {
   final String email;
   final int categoryId;
   final String categoryName;
+  final String phoneNumber;
+
   const UpdateVictim(
       {Key? key,
       required this.id,
@@ -26,7 +28,8 @@ class UpdateVictim extends StatefulWidget {
       required this.dob,
       required this.email,
       required this.categoryId,
-      required this.categoryName})
+      required this.categoryName,
+      required this.phoneNumber})
       : super(key: key);
 
   @override
@@ -41,6 +44,7 @@ class _UpdateVictimState extends State<UpdateVictim> {
   String _names = "";
 
   String firstNameController = "";
+  String phoneNumberController = "";
   String lastNameController = '';
   DateTime dobController = DateTime.now();
   String emailController = '';
@@ -126,6 +130,7 @@ class _UpdateVictimState extends State<UpdateVictim> {
       "email": emailController,
       "user": prefs.getInt('id'), // Replace with the actual access level value
       "category": selectedCategoryId ?? 0,
+      "phoneNumber": phoneNumberController
     };
     if (selectedCategoryId == 0 || selectedCategoryId == null) {
       selectedCategoryId = categoryIDent;
@@ -176,28 +181,19 @@ class _UpdateVictimState extends State<UpdateVictim> {
         },
       );
     } else {
-      // Registration failed, handle the error here if needed
-      if (kDebugMode) {
-        print('Registration failed');
-      }
-      try {
-        final errorData = jsonDecode(response.body);
-        print("errors:  $errorData['message']");
-        setState(() {
-          _errorMessage = "Registration Failed ";
-        });
-      } catch (err) {
-        print("fail to convert response");
-        print("error: $err");
-      }
+      // Handle error response
+      // Display an error message or handle the error appropriately
+      final errorData = jsonDecode(response.body);
+      print('Error: ${response.reasonPhrase}');
+      print(errorData['message']);
 
+      setState(() {
+        _errorMessage = errorData['message'];
+      });
       Future.delayed(const Duration(seconds: 3), () {
         setState(() {
           _errorMessage = '';
         });
-      });
-      setState(() {
-        isLoading = false;
       });
     }
   }
@@ -209,6 +205,7 @@ class _UpdateVictimState extends State<UpdateVictim> {
     dobController = widget.dob;
     emailController = widget.email;
     categoryIDent = widget.categoryId;
+    phoneNumberController = widget.phoneNumber;
     super.initState();
     _fetchCategories();
   }
@@ -301,11 +298,22 @@ class _UpdateVictimState extends State<UpdateVictim> {
                       emailController = value;
                     });
                   },
-                    hintText: 'Enter Email',
+                  hintText: 'Enter Email',
                   obscureText: false,
                   validator: (String? value) {},
                 ),
-                const SizedBox(height: 10),
+
+                UpdateFormWidget(
+                  initialValue: widget.phoneNumber,
+                  onChanged: (value) {
+                    setState(() {
+                      phoneNumberController = value;
+                    });
+                  },
+                  hintText: 'Enter phone number',
+                  obscureText: false,
+                  validator: (String? value) {},
+                ),
 
                 const SizedBox(height: 10),
 

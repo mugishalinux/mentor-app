@@ -10,36 +10,37 @@ class Victim {
   DateTime createdAt;
   DateTime updatedAt;
   Category category;
+  String phoneNumber;
 
-  Victim({
-    required this.id,
-    required this.lastName,
-    required this.firstName,
-    required this.dob,
-    required this.email,
-    required this.status,
-    required this.createdBy,
-    required this.updatedBy,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.category,
-  });
+  Victim(
+      {required this.id,
+      required this.lastName,
+      required this.firstName,
+      required this.dob,
+      required this.email,
+      required this.status,
+      required this.createdBy,
+      required this.updatedBy,
+      required this.createdAt,
+      required this.updatedAt,
+      required this.category,
+      required this.phoneNumber});
 
   // Define a constructor to parse JSON
   factory Victim.fromJson(Map<String, dynamic> json) {
     return Victim(
-      id: json['id'],
-      lastName: json['lastName'],
-      firstName: json['firstName'],
-      dob: DateTime.parse(json['dob']),
-      email: json['email'],
-      status: json['status'],
-      createdBy: json['created_by'],
-      updatedBy: json['updated_by'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-      category: Category.fromJson(json['category']),
-    );
+        id: json['id'],
+        lastName: json['lastName'],
+        firstName: json['firstName'],
+        dob: DateTime.parse(json['dob']),
+        email: json['email'],
+        status: json['status'],
+        createdBy: json['created_by'],
+        updatedBy: json['updated_by'],
+        createdAt: DateTime.parse(json['created_at']),
+        updatedAt: DateTime.parse(json['updated_at']),
+        category: Category.fromJson(json['category']),
+        phoneNumber: json['phoneNumber']);
   }
 }
 

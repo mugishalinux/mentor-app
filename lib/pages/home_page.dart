@@ -179,6 +179,8 @@ class VictimCard extends StatelessWidget {
               const Divider(),
               Text("Email: ${victim.email}"),
               const Divider(),
+              Text("Phone Number: ${victim.phoneNumber}"),
+              const Divider(),
               // ... Add other properties as needed ...
               Text("Category Name: ${victim.category.categoryName}"),
             ],
@@ -189,7 +191,7 @@ class VictimCard extends StatelessWidget {
                 Navigator.pop(
                     context); // Close the dialog when 'Close' is pressed
               },
-              child: Text('Close'),
+              child: const Text('Close'),
             ),
           ],
         );
@@ -224,6 +226,7 @@ class VictimCard extends StatelessWidget {
                 String email = victim.email;
                 int categoryId = victim.category.id;
                 String categoryName = victim.category.categoryName;
+                String phoneNumber = victim.phoneNumber;
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -235,6 +238,7 @@ class VictimCard extends StatelessWidget {
                             email: email,
                             categoryId: categoryId,
                             categoryName: categoryName,
+                            phoneNumber: phoneNumber,
                           )),
                 );
               },

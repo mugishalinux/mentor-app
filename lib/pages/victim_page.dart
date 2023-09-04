@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'dart:convert';
+
 import 'package:modernlogintute/models/category_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+
 import '../components/my_textfield.dart';
 import '../config/config.dart';
 import 'home_page.dart';
@@ -42,10 +44,18 @@ class _VictimPageState extends State<VictimPage> {
   }
 
   final firstNameController = TextEditingController();
+  final parentPhoneController = TextEditingController();
   final lastNameController = TextEditingController();
   final dobController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final phoneController = TextEditingController();
+  final childDobController = TextEditingController();
+  final siblingNumberController = TextEditingController();
+  String selectedInsurance = 'Mutuelle';
+  String caseScenario = 'Raped';
+  String educationLevel = 'Primary Level';
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   String? selectedCategory;
   String? selectedProvince;
@@ -60,6 +70,11 @@ class _VictimPageState extends State<VictimPage> {
   bool isLoading = false;
   String _errorMessage = '';
   String _errorAgeMessage = '';
+
+  String parentDropdownValue = 'Yes';
+  String fatherNames = '';
+  String motherNames = '';
+  String guardianNames = '';
 
   List<Map<String, dynamic>> provinces = [];
   List<Map<String, dynamic>> districts = [];
@@ -144,6 +159,7 @@ class _VictimPageState extends State<VictimPage> {
       });
       return;
     }
+    if (phoneController.text == "3") {}
 
     if (age >= 21) {
       print("Victim age should be below 21 years old.");
@@ -171,6 +187,17 @@ class _VictimPageState extends State<VictimPage> {
       "email": emailController.text,
       "user": prefs.getInt('id'), // Replace with the actual access level value
       "category": selectedCategoryId ?? 0,
+      "phoneNumber": phoneController.text,
+      "medicalInsurance": selectedInsurance,
+      "isOrphan": parentDropdownValue,
+      "fatherNames": fatherNames,
+      "motherNames": motherNames,
+      "guardiaNames": guardianNames,
+      "parentContact": parentPhoneController.text,
+      "childDob": childDobController.text,
+      "caseScenario": caseScenario,
+      "siblingNumber": siblingNumberController.text,
+      "educationLevel": educationLevel,
     };
 
     final response = await http.post(
@@ -218,28 +245,21 @@ class _VictimPageState extends State<VictimPage> {
         },
       );
     } else {
-      // Registration failed, handle the error here if needed
+      // Handle error response
+      // Display an error message or handle the error appropriately
+      final errorData = jsonDecode(response.body);
+      // print('Error: ${response.reasonPhrase}');
       if (kDebugMode) {
-        print('Registration failed');
-      }
-      try {
-        final errorData = jsonDecode(response.body);
         print(errorData['message']);
-        setState(() {
-          _errorMessage = "Registration Failed ";
-        });
-      } catch (err) {
-        print("fail to convert response");
-        print("error: $err");
       }
 
+      setState(() {
+        _errorMessage = errorData['message'];
+      });
       Future.delayed(const Duration(seconds: 3), () {
         setState(() {
           _errorMessage = '';
         });
-      });
-      setState(() {
-        isLoading = false;
       });
     }
   }
@@ -304,7 +324,7 @@ class _VictimPageState extends State<VictimPage> {
                 ),
                 const SizedBox(height: 10),
 
-                // phoneNumber textfield
+                // email textfield
                 MyTextField(
                   controller: emailController,
                   hintText: 'Enter Email',
@@ -312,40 +332,355 @@ class _VictimPageState extends State<VictimPage> {
                 ),
                 const SizedBox(height: 10),
 
+                MyTextField(
+                  controller: phoneController,
+                  hintText: 'Enter Phone Number',
+                  obscureText: false,
+                ),
                 const SizedBox(height: 10),
 
                 // Province dropdown
                 Padding(
                   padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
-                  child: DropdownButton<String>(
-                    value: selectedCategory,
-                    hint: const Text('Select Category'),
-                    isExpanded: true, // Set width to 100%
-                    dropdownColor:
-                        Colors.white, // Set dropdown menu color to white
-                    onChanged: (String? value) {
-                      setState(() {
-                        selectedCategory = value;
-                        selectedCategoryId = null;
-                      });
-                      if (selectedCategory != null) {
-                        int categoryId = categories.firstWhere((category) =>
-                            category['cateogryName'] == value)['id'];
-                        fetchDistricts(categoryId);
-                        selectedCategoryId = categoryId;
-                      }
-                    },
-                    items: categories.map((category) {
-                      return DropdownMenuItem<String>(
-                        value: category['cateogryName'],
-                        child: Text(category['cateogryName']),
-                      );
-                    }).toList(),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.white), // Set border color to white
+                      borderRadius:
+                          BorderRadius.circular(5.0), // Add border radius
+                      color:
+                          Colors.grey.shade200, // Set background color to white
+                    ),
+                    child: DropdownButton<String>(
+                      value: selectedCategory,
+                      hint: const Text('Select Category'),
+                      isExpanded: true, // Set width to 100%
+                      dropdownColor:
+                          Colors.white, // Set dropdown menu color to white
+                      onChanged: (String? value) {
+                        setState(() {
+                          selectedCategory = value;
+                          selectedCategoryId = null;
+                        });
+                        if (selectedCategory != null) {
+                          int categoryId = categories.firstWhere((category) =>
+                              category['cateogryName'] == value)['id'];
+                          fetchDistricts(categoryId);
+                          selectedCategoryId = categoryId;
+                        }
+                      },
+                      items: categories.map((category) {
+                        return DropdownMenuItem<String>(
+                          value: category['cateogryName'],
+                          child: Text(category['cateogryName']),
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
 
-                const SizedBox(height: 25),
+                const SizedBox(height: 10),
 
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.white), // Set border color to white
+                      borderRadius:
+                          BorderRadius.circular(5.0), // Add border radius
+                      color:
+                          Colors.grey.shade200, // Set background color to white
+                    ),
+                    child: DropdownButtonFormField(
+                      value: selectedInsurance,
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedInsurance = newValue!;
+                        });
+                      },
+                      items: <String>[
+                        'Mutuelle',
+                        'Other Insurance',
+                        'No Insurance',
+                      ].map<DropdownMenuItem<String>>(
+                        (String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        },
+                      ).toList(),
+                      decoration: InputDecoration(
+                        labelText: 'Select Insurance',
+                        hintText: 'Select an insurance type',
+                        errorText: _formKey.currentState?.validate() == false
+                            ? 'Please select an insurance type'
+                            : null,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please select an insurance type';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.white), // Set border color to white
+                      borderRadius:
+                          BorderRadius.circular(5.0), // Add border radius
+                      color:
+                          Colors.grey.shade200, // Set background color to white
+                    ),
+                    child: DropdownButtonFormField(
+                      value: parentDropdownValue,
+                      onChanged: (newValue) {
+                        setState(() {
+                          parentDropdownValue = newValue!;
+                          if (newValue == 'Yes') {
+                            fatherNames = '';
+                            motherNames = '';
+                          } else {
+                            fatherNames = '';
+                            motherNames = '';
+                          }
+                        });
+                      },
+                      items:
+                          <String>['Yes', 'No'].map<DropdownMenuItem<String>>(
+                        (String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        },
+                      ).toList(),
+                      decoration: const InputDecoration(
+                        labelText: 'Does the child have parents?',
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                if (parentDropdownValue == 'Yes')
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: Colors.white), // Set border color to white
+                        borderRadius:
+                            BorderRadius.circular(5.0), // Add border radius
+                        color: Colors.grey
+                            .shade200, // Set background color to grey.shade200
+                      ),
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Father\'s Full Name',
+                          border: InputBorder.none, // Remove default border
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            fatherNames = value;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 10),
+                if (parentDropdownValue == 'Yes')
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: Colors.white), // Set border color to white
+                        borderRadius:
+                            BorderRadius.circular(5.0), // Add border radius
+                        color: Colors.grey
+                            .shade200, // Set background color to grey.shade200
+                      ),
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Mother\'s Full Name',
+                          border: InputBorder.none, // Remove default border
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            motherNames = value;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+
+                if (parentDropdownValue == 'No')
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: Colors.white), // Set border color to white
+                        borderRadius:
+                            BorderRadius.circular(5.0), // Add border radius
+                        color: Colors.grey
+                            .shade200, // Set background color to grey.shade200
+                      ),
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                          labelText: 'Guardian\'s Full Name',
+                          border: InputBorder.none, // Remove default border
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            guardianNames = value;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 10),
+
+                MyTextField(
+                  controller: parentPhoneController,
+                  hintText: 'Enter Parent/Guardian Phone Number',
+                  obscureText: false,
+                ),
+                const SizedBox(height: 10),
+
+                GestureDetector(
+                  onTap: () async {
+                    DateTime? date = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(1900),
+                      lastDate: DateTime.now(),
+                    );
+
+                    if (date != null && date != DateTime.now()) {
+                      setState(() {
+                        childDobController.text = date.toString().split(' ')[0];
+                      });
+                    }
+                  },
+                  child: AbsorbPointer(
+                    child: MyTextField(
+                      controller: childDobController,
+                      hintText: 'Enter Date of Birth of victim child',
+                      obscureText: false,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.white), // Set border color to white
+                      borderRadius:
+                          BorderRadius.circular(5.0), // Add border radius
+                      color:
+                          Colors.grey.shade200, // Set background color to white
+                    ),
+                    child: DropdownButtonFormField(
+                      value: caseScenario,
+                      onChanged: (newValue) {
+                        setState(() {
+                          caseScenario = newValue!;
+                        });
+                      },
+                      items: <String>[
+                        'Raped',
+                        'Tempted',
+                      ].map<DropdownMenuItem<String>>(
+                        (String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        },
+                      ).toList(),
+                      decoration: InputDecoration(
+                        labelText: 'Select Case Scenario',
+                        hintText: 'Select Case Scenario type',
+                        errorText: _formKey.currentState?.validate() == false
+                            ? 'Please select case scenario type'
+                            : null,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please select case scenario type';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // firstname textfield
+                MyTextField(
+                  controller: siblingNumberController,
+                  hintText: 'Enter Sibling number ',
+                  obscureText: false,
+                ),
+                const SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(25, 0, 25, 0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.white), // Set border color to white
+                      borderRadius:
+                          BorderRadius.circular(5.0), // Add border radius
+                      color:
+                          Colors.grey.shade200, // Set background color to white
+                    ),
+                    child: DropdownButtonFormField(
+                      value: educationLevel,
+                      onChanged: (newValue) {
+                        setState(() {
+                          educationLevel = newValue!;
+                        });
+                      },
+                      items: <String>[
+                        'Primary Level',
+                        'Ordinary Level',
+                        'Advanced Level',
+                      ].map<DropdownMenuItem<String>>(
+                        (String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        },
+                      ).toList(),
+                      decoration: InputDecoration(
+                        labelText: 'Select Education Level',
+                        hintText: 'Select Education Level',
+                        errorText: _formKey.currentState?.validate() == false
+                            ? 'Select Education Level'
+                            : null,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Select Education Level';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     primary: Colors.black, // Set background color to black
